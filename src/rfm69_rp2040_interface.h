@@ -28,6 +28,14 @@
 
 #include "rfm69_rp2040_definitions.h"
 
+#define RFM69_DEFAULT_BROADCAST_ADDR 0xFF
+#define RFM69_DEFAULT_ADDR           0x00
+#define RFM69_DEFAULT_RSSI_THRESHOLD 0xE4
+#define RFM69_DEFAULT_POWER_LEVEL    13
+#define RFM69_DEFAULT_SYNC_WORD_LEN  3
+
+const uint8_t RFM69_DEFAULT_SYNC_WORD[8] = {0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01};
+
 typedef struct _rfm69_context {
     spi_inst_t *spi; // Initialized SPI instance
     uint8_t pin_cs;

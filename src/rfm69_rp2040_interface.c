@@ -50,7 +50,7 @@ bool rfm69_init(
 	rfm->pa_level = 0xFF;
 	rfm->pa_mode = RFM69_PA_MODE_PA0;
 	rfm->ocp_trim = RFM69_OCP_TRIM_DEFAULT;
-	rfm->address = 0;
+	rfm->address = RFM69_DEFAULT_ADDR;
 
     // Per documentation we leave RST pin floating for at least
     // 10 ms on startup. No harm in waiting 10ms here to
@@ -74,11 +74,10 @@ bool rfm69_init(
 	}
 
 	rfm69_data_mode_set(rfm, RFM69_DATA_MODE_PACKET);
-
-	rfm69_power_level_set(rfm, 13);
-	rfm69_rssi_threshold_set(rfm, 0xE4); // recommended default
+	rfm69_power_level_set(rfm, RFM69_DEFAULT_POWER_LEVEL);
+	rfm69_rssi_threshold_set(rfm, RFM69_DEFAULT_RSSI_THRESHOLD);
 	rfm69_tx_start_condition_set(rfm, RFM69_TX_FIFO_NOT_EMPTY);
-	rfm69_broadcast_address_set(rfm, 0xFF); 
+	rfm69_broadcast_address_set(rfm, RFM69_DEFAULT_BROADCAST_ADDR);
 	rfm69_address_filter_set(rfm, RFM69_FILTER_NODE_BROADCAST);
 
 	// You have no idea how important this is and how odd
@@ -86,8 +85,7 @@ bool rfm69_init(
 	rfm69_dagc_set(rfm, RFM69_DAGC_IMPROVED_0);
 
 	//Set sync value (essentially functions as subnet)
-	uint8_t sync[3] = {0x01, 0x01, 0x01};
-	rfm69_sync_value_set(rfm, sync, 3);
+	rfm69_sync_value_set(rfm, RFM69_DEFAULT_SYNC_WORD, RFM69_DEFAULT_SYNC_WORD_LEN);
 
 	success = true;
 RETURN:
