@@ -644,7 +644,7 @@ bool rfm69_broadcast_address_set(rfm69_context_t *rfm, uint8_t address) {
     );
 }
 
-bool rfm69_sync_value_set(rfm69_context_t *rfm, uint8_t *value, uint8_t size) {
+bool rfm69_sync_value_set(rfm69_context_t *rfm, const uint8_t *value, uint8_t size) {
     if (!rfm69_write(rfm, RFM69_REG_SYNC_VALUE_1, value, size))
 		return false;
 

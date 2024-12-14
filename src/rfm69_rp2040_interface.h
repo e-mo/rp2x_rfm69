@@ -34,7 +34,7 @@
 #define RFM69_DEFAULT_POWER_LEVEL    13
 #define RFM69_DEFAULT_SYNC_WORD_LEN  3
 
-const uint8_t RFM69_DEFAULT_SYNC_WORD[8] = {0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01};
+static const uint8_t RFM69_DEFAULT_SYNC_WORD[8] = {0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01};
 
 typedef struct _rfm69_context {
     spi_inst_t *spi; // Initialized SPI instance
@@ -232,7 +232,7 @@ bool rfm69_node_address_set(rfm69_context_t *rfm, uint8_t address);
 void rfm69_node_address_get(rfm69_context_t *rfm, uint8_t *address);
 bool rfm69_broadcast_address_set(rfm69_context_t *rfm, uint8_t address);
 
-bool rfm69_sync_value_set(rfm69_context_t *rfm, uint8_t *value, uint8_t size);
+bool rfm69_sync_value_set(rfm69_context_t *rfm, const uint8_t *value, uint8_t size);
 
 bool rfm69_crc_autoclear_set(rfm69_context_t *rfm, bool set);
 
