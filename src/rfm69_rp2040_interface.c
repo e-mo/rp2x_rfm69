@@ -227,6 +227,13 @@ bool rfm69_frequency_set(rfm69_context_t *rfm, uint32_t frequency) {
     return rfm69_write(rfm, RFM69_REG_FRF_MSB, buf, 3);
 }
 
+uint32_t rfm69_frequency_compute_closest(uint32_t frequency) {
+    frequency *= 1000000;
+    frequency = (frequency / RFM69_FSTEP) + 0.5; // Gives needed register value
+    frequency *= RFM69_FSTEP;
+    return frequency;
+}
+
 bool rfm69_frequency_get(rfm69_context_t *rfm, uint32_t *frequency) {
     uint8_t buf[3] = {0};
     if (!rfm69_read(rfm, RFM69_REG_FRF_MSB, buf, 3)) return false;
@@ -250,6 +257,27 @@ bool rfm69_fdev_set(rfm69_context_t *rfm, uint32_t fdev) {
     return rfm69_write(rfm, RFM69_REG_FDEV_MSB, buf, 2);
 }
 
+uint32_t rfm69_fdev_compute_closest(uint32_t fdev) {
+    uint32_t rouded = ((fdev / RFM69_FSTEP) + 0.5);
+    rouded *= RFM69_FSTEP;
+    return rouded;
+}
+
+bool rfm69_fdev_get(rfm69_context_t *rfm, uint32_t* fdev) {
+    uint8_t  buf[2] = {0};
+    uint32_t tmp = 0;
+    if (!rfm69_read(rfm, RFM69_REG_FDEV_MSB, buf, 2))
+        return false;
+
+    tmp = buf[0];
+    tmp = (tmp & 0x3F) << 8;
+    tmp |= buf[1];
+    tmp *= RFM69_FSTEP;
+    *fdev = tmp;
+
+    return true;
+}
+
 bool rfm69_rxbw_set(rfm69_context_t *rfm, RFM69_RXBW_MANTISSA mantissa, uint8_t exponent) {
     // mask all inputs to prevent invalid input
     exponent &= RFM69_RXBW_EXPONENT_MASK;
@@ -263,6 +291,23 @@ bool rfm69_rxbw_set(rfm69_context_t *rfm, RFM69_RXBW_MANTISSA mantissa, uint8_t 
             buf,
             RFM69_RXBW_EXPONENT_MASK | RFM69_RXBW_MANTISSA_MASK
     );
+}
+
+bool rfm69_rxbw_get(rfm69_context_t *rfm, uint8_t *mantissa, uint8_t *exponent) {
+    uint8_t buf;
+    if (!rfm69_read_masked(
+            rfm,
+            RFM69_REG_RXBW,
+            &buf,
+            RFM69_RXBW_EXPONENT_MASK | RFM69_RXBW_MANTISSA_MASK
+    )) {
+        return false;
+    }
+
+    *exponent = buf & RFM69_RXBW_EXPONENT_MASK;
+    *mantissa = buf & RFM69_RXBW_MANTISSA_MASK;
+
+    return true;
 }
 
 bool rfm69_bitrate_set(rfm69_context_t *rfm, uint16_t bit_rate) {
@@ -613,6 +658,13 @@ bool rfm69_packet_format_set(rfm69_context_t *rfm, RFM69_PACKET_FORMAT format) {
 			0x80
 	);
 }
+bool rfm69_packet_format_get(rfm69_context_t *rfm, uint8_t *format) {
+    return rfm69_read_masked(
+            rfm,
+            RFM69_REG_PACKET_CONFIG_1,
+            format,
+            0x80);
+}
 
 bool rfm69_address_filter_set(rfm69_context_t *rfm, RFM69_ADDRESS_FILTER filter) {
     return rfm69_write_masked(
@@ -631,7 +683,13 @@ bool rfm69_node_address_set(rfm69_context_t *rfm, uint8_t address) {
 	return true;
 }
 
-void rfm69_node_address_get(rfm69_context_t *rfm, uint8_t *address) {
+bool rfm69_node_address_get(rfm69_context_t *rfm, uint8_t *address) {
+    if (!rfm69_read( rfm, RFM69_REG_NODE_ADRS, address, 1))
+		return false;
+
+    if (*address != rfm->address)
+		return false;
+
     *address = rfm->address;
 }
 
@@ -640,6 +698,15 @@ bool rfm69_broadcast_address_set(rfm69_context_t *rfm, uint8_t address) {
             rfm,
             RFM69_REG_BROADCAST_ADRS,
             &address,
+            1
+    );
+}
+
+bool rfm69_broadcast_address_get(rfm69_context_t *rfm, uint8_t *address) {
+    return rfm69_read(
+            rfm,
+            RFM69_REG_BROADCAST_ADRS,
+            address,
             1
     );
 }
@@ -663,6 +730,15 @@ bool rfm69_crc_autoclear_set(rfm69_context_t *rfm, bool set) {
 
 bool rfm69_dcfree_set(rfm69_context_t *rfm, RFM69_DCFREE_SETTING setting) {
     return rfm69_write_masked(
+            rfm,
+            RFM69_REG_PACKET_CONFIG_1,
+            setting,
+            _DCFREE_SETTING_MASK
+    );
+}
+
+bool rfm69_dcfree_get(rfm69_context_t *rfm, uint8_t *setting) {
+    return rfm69_read_masked(
             rfm,
             RFM69_REG_PACKET_CONFIG_1,
             setting,
