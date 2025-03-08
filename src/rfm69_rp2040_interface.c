@@ -40,6 +40,9 @@ bool rfm69_init(
 	rfm->spi = config->spi;
 	rfm->pin_cs = config->pin_cs;
 	rfm->pin_rst = config->pin_rst;
+	rfm->pin_dio0 = config->pin_dio0;
+	rfm->pin_dio1 = config->pin_dio1;
+	rfm->pin_dio2 = config->pin_dio2;
 	rfm->op_mode = RFM69_OP_MODE_STDBY;
 	rfm->pa_level = 0xFF;
 	rfm->pa_mode = RFM69_PA_MODE_PA0;
@@ -70,7 +73,7 @@ bool rfm69_init(
 	rfm69_data_mode_set(rfm, RFM69_DATA_MODE_PACKET);
 
 	rfm69_power_level_set(rfm, 13);
-	rfm69_rssi_threshold_set(rfm, 0xE4);
+	rfm69_rssi_threshold_set(rfm, 0xE4); // recommended default
 	rfm69_tx_start_condition_set(rfm, RFM69_TX_FIFO_NOT_EMPTY);
 	rfm69_broadcast_address_set(rfm, 0xFF); 
 	rfm69_address_filter_set(rfm, RFM69_FILTER_NODE_BROADCAST);
@@ -579,6 +582,16 @@ bool rfm69_tx_start_condition_set(rfm69_context_t *rfm, RFM69_TX_START_CONDITION
             _TX_START_CONDITION_MASK
     );
 }
+
+bool rfm69_fifo_threshold_set(rfm69_context_t *rfm, uint8_t threshold) {
+    return rfm69_write_masked(
+            rfm,
+            RFM69_REG_FIFO_THRESH,
+            threshold,
+            _FIFO_THRESHOLD_MASK
+    );
+}
+
 
 bool rfm69_payload_length_set(rfm69_context_t *rfm, uint8_t length) {
     return rfm69_write(

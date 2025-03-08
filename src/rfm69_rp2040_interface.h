@@ -30,8 +30,11 @@
 
 typedef struct _rfm69_context {
     spi_inst_t *spi; // Initialized SPI instance
-    uint pin_cs;
-    uint pin_rst;
+    uint8_t pin_cs;
+    uint8_t pin_rst;
+	uint8_t pin_dio0;
+	uint8_t pin_dio1;
+	uint8_t pin_dio2;
     RFM69_OP_MODE op_mode;
     int8_t pa_level;
     RFM69_PA_MODE pa_mode;
@@ -44,6 +47,9 @@ struct rfm69_config_s {
 	spi_inst_t *spi;
 	uint pin_cs;
 	uint pin_rst;
+	uint pin_dio0;
+	uint pin_dio1;
+	uint pin_dio2;
 };
 
 // DEPRECATED
@@ -207,6 +213,8 @@ bool _ocp_set(rfm69_context_t *rfm, RFM69_OCP state);
 bool _hp_set(rfm69_context_t *rfm, RFM69_HP_CONFIG enable);
 
 bool rfm69_tx_start_condition_set(rfm69_context_t *rfm, RFM69_TX_START_CONDITION condition);
+
+bool rfm69_fifo_threshold_set(rfm69_context_t *rfm, uint8_t threshold);
 
 bool rfm69_payload_length_set(rfm69_context_t *rfm, uint8_t length);
 bool rfm69_packet_format_set(rfm69_context_t *rfm, RFM69_PACKET_FORMAT format);
