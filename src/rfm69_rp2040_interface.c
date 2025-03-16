@@ -18,8 +18,11 @@
 //	You should have received a copy of the GNU General Public License
 //	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#include <stdio.h>
+
 #include "rfm69_rp2040_interface.h"
 #include "stdlib.h"
+
 
 // DEPRECATED
 //rfm69_context_t *rfm69_create() {
@@ -242,15 +245,15 @@ bool rfm69_fdev_set(rfm69_context_t *rfm, uint32_t fdev) {
     fdev = (fdev / RFM69_FSTEP) + 0.5;
 
     uint8_t buf[2] = {
-        (fdev >> 8) & 0x3F, 
-        fdev & 0xFF 
+        (fdev >> 8) & 0x3f, 
+        fdev & 0xff 
     };
 
     return rfm69_write(rfm, RFM69_REG_FDEV_MSB, buf, 2);
 }
 
 bool rfm69_rxbw_set(rfm69_context_t *rfm, RFM69_RXBW_MANTISSA mantissa, uint8_t exponent) {
-    // Mask all inputs to prevent invalid input
+    // mask all inputs to prevent invalid input
     exponent &= RFM69_RXBW_EXPONENT_MASK;
     mantissa &= RFM69_RXBW_MANTISSA_MASK;
 
@@ -440,6 +443,8 @@ bool rfm69_power_level_set(rfm69_context_t *rfm, int8_t pa_level) {
 #else
     bool high_power = false;
 #endif
+
+	printf("high power: %s\n", high_power ? "true" : "false");
 
     // High power modules have to follow slightly different bounds
     // regarding PA_LEVEL. -2 -> 20 Dbm. 
@@ -653,7 +658,7 @@ bool rfm69_crc_autoclear_set(rfm69_context_t *rfm, bool set) {
     return rfm69_write_masked(
             rfm,
             RFM69_REG_PACKET_CONFIG_1,
-            !set << 7,
+            !set << 3,
             0x08
     );
 }
