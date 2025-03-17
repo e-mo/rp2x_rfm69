@@ -22,6 +22,7 @@
 
 #include "rfm69_rp2040_interface.h"
 #include "stdlib.h"
+#include "hardware/sync.h"
 
 
 // DEPRECATED
@@ -121,12 +122,20 @@ bool rfm69_write(
         size_t len)
 {
     address |= 0x80; // Set rw bit
+
+    // Disable interrupts and save current state
+    uint32_t irq_status = save_and_disable_interrupts();
+    // Critical code section
+
     cs_select(rfm->pin_cs); 
 
     int rval = spi_write_blocking(rfm->spi, &address, 1);
     rval += spi_write_blocking(rfm->spi, src, len);
 
     cs_deselect(rfm->pin_cs);
+
+    // Restore interrupts to previous state
+    restore_interrupts(irq_status);
 
     if (rval != len + 1) {
         rfm->return_status = RFM69_SPI_UNEXPECTED_RETURN;
@@ -160,12 +169,19 @@ bool rfm69_read(
 {
     address &= 0x7F; // Clear rw bit
 
+    // Disable interrupts and save current state
+    uint32_t irq_status = save_and_disable_interrupts();
+    // Critical code section
+
     cs_select(rfm->pin_cs);
 
     int rval = spi_write_blocking(rfm->spi, &address, 1);
     rval += spi_read_blocking(rfm->spi, 0, dst, len);
 
     cs_deselect(rfm->pin_cs);
+
+    // Restore interrupts to previous state
+    restore_interrupts(irq_status);
 
     if (rval != len + 1) {
         rfm->return_status = RFM69_SPI_UNEXPECTED_RETURN;
