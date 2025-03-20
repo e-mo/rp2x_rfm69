@@ -28,6 +28,15 @@
 
 #include "rfm69_rp2040_definitions.h"
 
+#define RFM69_DEFAULT_BROADCAST_ADDR 0xFF
+#define RFM69_DEFAULT_ADDR           0x00
+#define RFM69_DEFAULT_RSSI_THRESHOLD 0xE4
+#define RFM69_DEFAULT_POWER_LEVEL    13
+#define RFM69_DEFAULT_SYNC_WORD_LEN  3
+#define RFM69_DEFAULT_PREAMBLE_LEN   3
+
+static const uint8_t RFM69_DEFAULT_SYNC_WORD[8] = {0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01};
+
 typedef struct _rfm69_context {
     spi_inst_t *spi; // Initialized SPI instance
     uint8_t pin_cs;
@@ -143,6 +152,9 @@ bool rfm69_irq2_flag_state(rfm69_context_t *rfm, RFM69_IRQ2_FLAG flag, bool *sta
 // Returns number of bytes written. 
 bool rfm69_frequency_set(rfm69_context_t *rfm, uint32_t frequency);
 
+// Calculate the closest available frequency
+uint32_t rfm69_frequency_compute_closest(uint32_t frequency);
+
 // Reads operating frequency from module.
 // Note - might not reflect set freqency until a mode change.
 // frequency - stores frequency in Hz.
@@ -154,8 +166,11 @@ bool rfm69_frequency_get(rfm69_context_t *rfm, uint32_t *frequency);
 // Note: 0.5 <= 2* Fdev/Bitrate <= 10
 // Beta value should stay within this range per specification.
 bool rfm69_fdev_set(rfm69_context_t *rfm, uint32_t fdev);
+uint32_t rfm69_fdev_compute_closest(uint32_t fdev);
+bool rfm69_fdev_get(rfm69_context_t *rfm, uint32_t* fdev);
 
 bool rfm69_rxbw_set(rfm69_context_t *rfm, RFM69_RXBW_MANTISSA mantissa, uint8_t exponent);
+bool rfm69_rxbw_get(rfm69_context_t *rfm, uint8_t *mantissa, uint8_t *exponent);
 
 // Sets modem bitrate.
 bool rfm69_bitrate_set(rfm69_context_t *rfm,
@@ -218,17 +233,20 @@ bool rfm69_fifo_threshold_set(rfm69_context_t *rfm, uint8_t threshold);
 
 bool rfm69_payload_length_set(rfm69_context_t *rfm, uint8_t length);
 bool rfm69_packet_format_set(rfm69_context_t *rfm, RFM69_PACKET_FORMAT format);
+bool rfm69_packet_format_get(rfm69_context_t *rfm, uint8_t *format);
 
 bool rfm69_address_filter_set(rfm69_context_t *rfm, RFM69_ADDRESS_FILTER filter);
 bool rfm69_node_address_set(rfm69_context_t *rfm, uint8_t address);
-void rfm69_node_address_get(rfm69_context_t *rfm, uint8_t *address);
+bool rfm69_node_address_get(rfm69_context_t *rfm, uint8_t *address);
 bool rfm69_broadcast_address_set(rfm69_context_t *rfm, uint8_t address);
+bool rfm69_broadcast_address_get(rfm69_context_t *rfm, uint8_t *address);
 
-bool rfm69_sync_value_set(rfm69_context_t *rfm, uint8_t *value, uint8_t size);
+bool rfm69_sync_value_set(rfm69_context_t *rfm, const uint8_t *value, uint8_t size);
 
 bool rfm69_crc_autoclear_set(rfm69_context_t *rfm, bool set);
 
 bool rfm69_dcfree_set(rfm69_context_t *rfm, RFM69_DCFREE_SETTING setting);
+bool rfm69_dcfree_get(rfm69_context_t *rfm, uint8_t *setting);
 bool rfm69_dagc_set(rfm69_context_t *rfm, RFM69_DAGC_SETTING setting);
 
 // Helper functions to configure dio settings in packet mode

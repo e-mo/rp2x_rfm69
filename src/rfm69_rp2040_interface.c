@@ -22,6 +22,7 @@
 
 #include "rfm69_rp2040_interface.h"
 #include "stdlib.h"
+#include "hardware/sync.h"
 
 
 // DEPRECATED
@@ -50,7 +51,7 @@ bool rfm69_init(
 	rfm->pa_level = 0xFF;
 	rfm->pa_mode = RFM69_PA_MODE_PA0;
 	rfm->ocp_trim = RFM69_OCP_TRIM_DEFAULT;
-	rfm->address = 0;
+	rfm->address = RFM69_DEFAULT_ADDR;
 
     // Per documentation we leave RST pin floating for at least
     // 10 ms on startup. No harm in waiting 10ms here to
@@ -74,11 +75,10 @@ bool rfm69_init(
 	}
 
 	rfm69_data_mode_set(rfm, RFM69_DATA_MODE_PACKET);
-
-	rfm69_power_level_set(rfm, 13);
-	rfm69_rssi_threshold_set(rfm, 0xE4); // recommended default
+	rfm69_power_level_set(rfm, RFM69_DEFAULT_POWER_LEVEL);
+	rfm69_rssi_threshold_set(rfm, RFM69_DEFAULT_RSSI_THRESHOLD);
 	rfm69_tx_start_condition_set(rfm, RFM69_TX_FIFO_NOT_EMPTY);
-	rfm69_broadcast_address_set(rfm, 0xFF); 
+	rfm69_broadcast_address_set(rfm, RFM69_DEFAULT_BROADCAST_ADDR);
 	rfm69_address_filter_set(rfm, RFM69_FILTER_NODE_BROADCAST);
 
 	// You have no idea how important this is and how odd
@@ -86,8 +86,7 @@ bool rfm69_init(
 	rfm69_dagc_set(rfm, RFM69_DAGC_IMPROVED_0);
 
 	//Set sync value (essentially functions as subnet)
-	uint8_t sync[3] = {0x01, 0x01, 0x01};
-	rfm69_sync_value_set(rfm, sync, 3);
+	rfm69_sync_value_set(rfm, RFM69_DEFAULT_SYNC_WORD, RFM69_DEFAULT_SYNC_WORD_LEN);
 
 	success = true;
 RETURN:
@@ -123,12 +122,20 @@ bool rfm69_write(
         size_t len)
 {
     address |= 0x80; // Set rw bit
+
+    // Disable interrupts and save current state
+    uint32_t irq_status = save_and_disable_interrupts();
+    // Critical code section
+
     cs_select(rfm->pin_cs); 
 
     int rval = spi_write_blocking(rfm->spi, &address, 1);
     rval += spi_write_blocking(rfm->spi, src, len);
 
     cs_deselect(rfm->pin_cs);
+
+    // Restore interrupts to previous state
+    restore_interrupts(irq_status);
 
     if (rval != len + 1) {
         rfm->return_status = RFM69_SPI_UNEXPECTED_RETURN;
@@ -162,12 +169,19 @@ bool rfm69_read(
 {
     address &= 0x7F; // Clear rw bit
 
+    // Disable interrupts and save current state
+    uint32_t irq_status = save_and_disable_interrupts();
+    // Critical code section
+
     cs_select(rfm->pin_cs);
 
     int rval = spi_write_blocking(rfm->spi, &address, 1);
     rval += spi_read_blocking(rfm->spi, 0, dst, len);
 
     cs_deselect(rfm->pin_cs);
+
+    // Restore interrupts to previous state
+    restore_interrupts(irq_status);
 
     if (rval != len + 1) {
         rfm->return_status = RFM69_SPI_UNEXPECTED_RETURN;
@@ -229,6 +243,13 @@ bool rfm69_frequency_set(rfm69_context_t *rfm, uint32_t frequency) {
     return rfm69_write(rfm, RFM69_REG_FRF_MSB, buf, 3);
 }
 
+uint32_t rfm69_frequency_compute_closest(uint32_t frequency) {
+    frequency *= 1000000;
+    frequency = (frequency / RFM69_FSTEP) + 0.5; // Gives needed register value
+    frequency *= RFM69_FSTEP;
+    return frequency;
+}
+
 bool rfm69_frequency_get(rfm69_context_t *rfm, uint32_t *frequency) {
     uint8_t buf[3] = {0};
     if (!rfm69_read(rfm, RFM69_REG_FRF_MSB, buf, 3)) return false;
@@ -252,6 +273,27 @@ bool rfm69_fdev_set(rfm69_context_t *rfm, uint32_t fdev) {
     return rfm69_write(rfm, RFM69_REG_FDEV_MSB, buf, 2);
 }
 
+uint32_t rfm69_fdev_compute_closest(uint32_t fdev) {
+    uint32_t rouded = ((fdev / RFM69_FSTEP) + 0.5);
+    rouded *= RFM69_FSTEP;
+    return rouded;
+}
+
+bool rfm69_fdev_get(rfm69_context_t *rfm, uint32_t* fdev) {
+    uint8_t  buf[2] = {0};
+    uint32_t tmp = 0;
+    if (!rfm69_read(rfm, RFM69_REG_FDEV_MSB, buf, 2))
+        return false;
+
+    tmp = buf[0];
+    tmp = (tmp & 0x3F) << 8;
+    tmp |= buf[1];
+    tmp *= RFM69_FSTEP;
+    *fdev = tmp;
+
+    return true;
+}
+
 bool rfm69_rxbw_set(rfm69_context_t *rfm, RFM69_RXBW_MANTISSA mantissa, uint8_t exponent) {
     // mask all inputs to prevent invalid input
     exponent &= RFM69_RXBW_EXPONENT_MASK;
@@ -265,6 +307,23 @@ bool rfm69_rxbw_set(rfm69_context_t *rfm, RFM69_RXBW_MANTISSA mantissa, uint8_t 
             buf,
             RFM69_RXBW_EXPONENT_MASK | RFM69_RXBW_MANTISSA_MASK
     );
+}
+
+bool rfm69_rxbw_get(rfm69_context_t *rfm, uint8_t *mantissa, uint8_t *exponent) {
+    uint8_t buf;
+    if (!rfm69_read_masked(
+            rfm,
+            RFM69_REG_RXBW,
+            &buf,
+            RFM69_RXBW_EXPONENT_MASK | RFM69_RXBW_MANTISSA_MASK
+    )) {
+        return false;
+    }
+
+    *exponent = buf & RFM69_RXBW_EXPONENT_MASK;
+    *mantissa = buf & RFM69_RXBW_MANTISSA_MASK;
+
+    return true;
 }
 
 bool rfm69_bitrate_set(rfm69_context_t *rfm, uint16_t bit_rate) {
@@ -615,6 +674,13 @@ bool rfm69_packet_format_set(rfm69_context_t *rfm, RFM69_PACKET_FORMAT format) {
 			0x80
 	);
 }
+bool rfm69_packet_format_get(rfm69_context_t *rfm, uint8_t *format) {
+    return rfm69_read_masked(
+            rfm,
+            RFM69_REG_PACKET_CONFIG_1,
+            format,
+            0x80);
+}
 
 bool rfm69_address_filter_set(rfm69_context_t *rfm, RFM69_ADDRESS_FILTER filter) {
     return rfm69_write_masked(
@@ -633,7 +699,13 @@ bool rfm69_node_address_set(rfm69_context_t *rfm, uint8_t address) {
 	return true;
 }
 
-void rfm69_node_address_get(rfm69_context_t *rfm, uint8_t *address) {
+bool rfm69_node_address_get(rfm69_context_t *rfm, uint8_t *address) {
+    if (!rfm69_read( rfm, RFM69_REG_NODE_ADRS, address, 1))
+		return false;
+
+    if (*address != rfm->address)
+		return false;
+
     *address = rfm->address;
 }
 
@@ -646,7 +718,16 @@ bool rfm69_broadcast_address_set(rfm69_context_t *rfm, uint8_t address) {
     );
 }
 
-bool rfm69_sync_value_set(rfm69_context_t *rfm, uint8_t *value, uint8_t size) {
+bool rfm69_broadcast_address_get(rfm69_context_t *rfm, uint8_t *address) {
+    return rfm69_read(
+            rfm,
+            RFM69_REG_BROADCAST_ADRS,
+            address,
+            1
+    );
+}
+
+bool rfm69_sync_value_set(rfm69_context_t *rfm, const uint8_t *value, uint8_t size) {
     if (!rfm69_write(rfm, RFM69_REG_SYNC_VALUE_1, value, size))
 		return false;
 
@@ -665,6 +746,15 @@ bool rfm69_crc_autoclear_set(rfm69_context_t *rfm, bool set) {
 
 bool rfm69_dcfree_set(rfm69_context_t *rfm, RFM69_DCFREE_SETTING setting) {
     return rfm69_write_masked(
+            rfm,
+            RFM69_REG_PACKET_CONFIG_1,
+            setting,
+            _DCFREE_SETTING_MASK
+    );
+}
+
+bool rfm69_dcfree_get(rfm69_context_t *rfm, uint8_t *setting) {
+    return rfm69_read_masked(
             rfm,
             RFM69_REG_PACKET_CONFIG_1,
             setting,
