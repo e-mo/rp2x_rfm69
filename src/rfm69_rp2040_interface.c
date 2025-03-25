@@ -18,7 +18,7 @@
 //	You should have received a copy of the GNU General Public License
 //	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include <stdio.h>
+// #include <stdio.h>
 
 #include "rfm69_rp2040_interface.h"
 #include "stdlib.h"
@@ -48,7 +48,7 @@ bool rfm69_init(
 	rfm->pin_dio1 = config->pin_dio1;
 	rfm->pin_dio2 = config->pin_dio2;
 	rfm->op_mode = RFM69_OP_MODE_STDBY;
-	rfm->pa_level = 0xFF;
+	rfm->pa_level = 0xFF; 
 	rfm->pa_mode = RFM69_PA_MODE_PA0;
 	rfm->ocp_trim = RFM69_OCP_TRIM_DEFAULT;
 	rfm->address = RFM69_DEFAULT_ADDR;
@@ -61,7 +61,7 @@ bool rfm69_init(
     gpio_set_dir(config->pin_rst, GPIO_OUT);
     gpio_put(config->pin_rst, 0);
 
-    // Try to read version register
+    // Reset and then try to read version register
     // As long as this returns anything other than 0 or 255, this passes.
     // The most common return is 0x24, but I can't guarantee that future
     // modules will return the same value.
@@ -124,7 +124,7 @@ bool rfm69_write(
     address |= 0x80; // Set rw bit
 
     // Disable interrupts and save current state
-    uint32_t irq_status = save_and_disable_interrupts();
+    //uint32_t irq_status = save_and_disable_interrupts();
     // Critical code section
 
     cs_select(rfm->pin_cs); 
@@ -135,7 +135,7 @@ bool rfm69_write(
     cs_deselect(rfm->pin_cs);
 
     // Restore interrupts to previous state
-    restore_interrupts(irq_status);
+    //restore_interrupts(irq_status);
 
     if (rval != len + 1) {
         rfm->return_status = RFM69_SPI_UNEXPECTED_RETURN;
@@ -170,7 +170,7 @@ bool rfm69_read(
     address &= 0x7F; // Clear rw bit
 
     // Disable interrupts and save current state
-    uint32_t irq_status = save_and_disable_interrupts();
+    //uint32_t irq_status = save_and_disable_interrupts();
     // Critical code section
 
     cs_select(rfm->pin_cs);
@@ -181,7 +181,7 @@ bool rfm69_read(
     cs_deselect(rfm->pin_cs);
 
     // Restore interrupts to previous state
-    restore_interrupts(irq_status);
+    //restore_interrupts(irq_status);
 
     if (rval != len + 1) {
         rfm->return_status = RFM69_SPI_UNEXPECTED_RETURN;
@@ -503,7 +503,7 @@ bool rfm69_power_level_set(rfm69_context_t *rfm, int8_t pa_level) {
     bool high_power = false;
 #endif
 
-	printf("high power: %s\n", high_power ? "true" : "false");
+	// printf("high power: %s\n", high_power ? "true" : "false");
 
     // High power modules have to follow slightly different bounds
     // regarding PA_LEVEL. -2 -> 20 Dbm. 
