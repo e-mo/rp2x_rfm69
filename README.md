@@ -4,10 +4,10 @@ A zero-assumptions library for interfacing the RP2XXX MCU family with the RFM69 
 This library exposes a low level interface for interacting with the Rfm69 family of transceivers with the RP2XXX microcontrollers. Usage of this library assumes intimate knowledge of your radio's datasheet, and beyond some [configuration notes](docs/configuration.md) talking about a few specific pain points which I believe are poorly represented in the documentation, I do very little to explain how the Rfm69 transceivers function.  
 
 ---
-## Low Level Interface
-The core of this library is a low level interface with provides a thin level of abstraction over the SPI calls needed to configure the RFM69 family of transceivers.
+## Interface
+This library is a low level interface which provides a thin level of abstraction over the SPI calls needed to configure the RFM69 family of transceivers.
 
-[Low Level Interface Documentation](docs/interface.md)
+[Interface Documentation](docs/interface.md)
 
 note: this interface is incomplete and does not provide a helper function for setting/reading all registers, only those that were relevant to me at the time of writing the drivers. I welcome pull requests, and will likely fill in the remaining functionality myself at some point.
 
@@ -23,7 +23,7 @@ I am breaking all higher level functionality into a new repo to keep these drive
 
 ---
 ## Examples
-[low level tx/rx](https://github.com/e-mo/rfm69_rp2040/tree/main/examples/low_level)  
+[tx/rx](https://github.com/e-mo/rfm69_rp2040/tree/main/examples/low_level)  
 
 ---
 ## Other Helpful Stuff
