@@ -4,33 +4,52 @@ any library functions with context object. Ensures that the hardware wakes up in
 **return:** `true` if init was successful.  
 **error:** Returns `false` if init fails.  
 ```c
-bool rfm69_init(rfm69_context_t *rfm, const rfm69_config_t *config)
+bool rfm69_init(rfm69_context_t *rfm, const struct rfm69_config_s *config)
 ```
 **usage**: Initialization function performes all necessary GPIO configuration, including SPI initializtion. Can be recalled to reset state of already initialized device.
 ```c
-// Rfm69 config object declaration (rfm69_rp2040_definitions.h)
-typedef struct _rfm69_config {
+// Rfm69 config object declaration (rp2x_rfm69_definitions.h)
+struct rfm69_config_s {
 	spi_inst_t *spi;
-	uint pin_miso;
-	uint pin_mosi;
 	uint pin_cs;
-	uint pin_sck;
 	uint pin_rst;
-} rfm69_config_t;
+	uint pin_dio0;
+	uint pin_dio1;
+	uint pin_dio2;
+	uint pin_dio3;
+	uint pin_dio4;
+	uint pin_dio5;
+};
 ```
 ```c
 // Initialization example
-#include "rfm69_rp2040.h"
+#include "rp2x_rfm69.h"
+
 int main() {
-    rfm69_context_t rfm;
-    struct rfm69_config_s config = {
-        .spi = spi0,
-        .pin_miso = 16,
-        .pin_mosi = 19,
-        .pin_cs = 17,
-        .pin_sck = 18,
-        .pin_rst = 20
-    };
+	// SPI init
+    spi_init(RFM69_SPI, 1000*1000);
+    gpio_set_function(RFM69_PIN_MISO, GPIO_FUNC_SPI);
+    gpio_set_function(RFM69_PIN_SCK,  GPIO_FUNC_SPI);
+    gpio_set_function(RFM69_PIN_MOSI, GPIO_FUNC_SPI);
+
+	// Drive CS pin high
+    gpio_init(RFM69_PIN_CS);
+    gpio_set_dir(RFM69_PIN_CS, GPIO_OUT);
+    gpio_put(RFM69_PIN_CS, 1);
+
+	struct rfm69_config_s config = {
+		// Initialized SPI instance and CS pin
+		.spi      = RFM69_SPI,
+		.pin_cs   = RFM69_PIN_CS,
+		// RFM69 reset pin
+		.pin_rst  = RFM69_PIN_RST,
+		// Only need to define DIO pins you will use
+		.pin_dio0 = RFM69_PIN_DIO0,
+		.pin_dio1 = RFM69_PIN_DIO1,
+		.pin_dio2 = RFM69_PIN_DIO2
+	};
+
+	rfm69_context_t rfm;
     bool success = rfm69_init(&rfm, &config);
 }
 ```
@@ -39,7 +58,7 @@ int main() {
 ### rfm69_reset
 **description:** Physically resets Rfm69 device by toggling the reset pin in accordance with datasheet  
 **return:** None  
-**error:** None  
+**error:** None    
 ```c
 bool rfm69_reset(rfm69_context_t *rfm);
 ```
@@ -66,7 +85,7 @@ write to registers.
 **return:** `true` if SPI write was successful.  
 **error:** `false` if SPI write fails.  
 ```c
-bool rfm69_write_masked(rfm69_context_t *rfm, uint8_t address, const uint8_t *src, uint8_t mask);
+bool rfm69_write_masked(rfm69_context_t *rfm, uint8_t address, const uint8_t *src, const uint8_t mask);
 ```
 **usage notes:** For writing masked values directly to device registers using SPI. For easier   
 register manipulation, user should prefer using one of the register specific interface functions.  
@@ -149,19 +168,29 @@ typedef enum _IRQ_2_FLAG {
 **return:** `true` if SPI write was successful.  
 **error:** `false` if SPI write fails.  
 ```c
-bool rfm69_frequency_set(rfm69_context_t *rfm, uint23_t frequency);
+bool rfm69_frequency_set(rfm69_context_t *rfm, uint32_t frequency);
 ```
-**usage notes:** `frequency` argument must be given in MHz.
+**usage notes:** `frequency` argument is in Hz.
 
 ---
 ### rfm69_frequency_get
-**description:** Returns `frequency` set to current device frequency in MHz.  
+**description:** Returns `frequency` set to current device frequency in Hz.  
 **return:** `true` if SPI read was successful.  
 **error:** `false` if SPI read fails.  
 ```c
-bool rfm69_frequency_set(rfm69_context_t *rfm, uint23_t *frequency);
+bool rfm69_frequency_get(rfm69_context_t *rfm, uint23_t *frequency);
 ```
-**usage notes:** frequency returned is in MHz.
+**usage notes:** frequency returned is in Hz.
+  
+---
+### rfm69_frequency_compute_closest
+**description:** Computes closest available frequency to `frequency` in Hz
+**return:** Closest available frequency in Hz.  
+**error:** none.  
+```c
+uint32_t rfm69_frequency_compute_closest(uint23_t frequency);
+```
+**usage notes:** `frequency` value is in Hz.
 
 ---
 ### rfm69_fdev_set
@@ -177,6 +206,28 @@ B = 2 * Fdev/Bitrate
 0.5 <= B <= 10
 ```
 See [notes on configuring the Rfm69](docs/configuration.md) for more information.
+
+### rfm69_fdev_get
+**description:** Returns `fdev` set to current device frequency deviation in Hz.  
+**return:** `true` if SPI write was successful.  
+**error:** `false` if SPI write fails.  
+```c
+bool rfm69_fdev_get(rfm69_context_t *rfm, uint32_t *fdev);
+```
+**usage notes:** Proper frequency deviation values are tightly coupled with bitrate.  
+```
+B = 2 * Fdev/Bitrate
+0.5 <= B <= 10
+```
+
+### rfm69_fdev_compute_closest(uint32_t fdev);
+**description:** Computes closest available frequency deviation to `fdev` in Hz
+**return:** Closest available frequency deviation in Hz.  
+**error:** none.  
+```c
+uint32_t rfm69_fdev_compute_closest(uint23_t fdev);
+```
+**usage notes:** `fdev` value is in Hz.
 
 ---
 ### rfm69_rxbw_set
@@ -203,6 +254,15 @@ typedef enum _RXBW_MANTISSA {
 ```
 [Available RxBw settings from RFM69HCW datasheet](https://cdn.sparkfun.com/datasheets/Wireless/General/RFM69HCW-V1.1.pdf#page=26)  
 [RegRxBw register info](https://cdn.sparkfun.com/datasheets/Wireless/General/RFM69HCW-V1.1.pdf#page=67)  
+
+---
+### rfm69_rxbw_get
+**description:** Returns `mantissa` set to current rxbw mantissa and `exponent` set to current rxbw exponent.
+**return:** `true` if SPI write was successful.  
+**error:** `false` if SPI write fails.  
+```c
+bool rfm69_rxbw_get(rfm69_context_t *rfm, RFM69_RXBW_MANTISSA *mantissa, uint8_t *exponent);
+```
 
 ---
 ### rfm69_bitrate_set
@@ -439,6 +499,16 @@ typedef enum _TX_START_CONDITION {
 ```
 
 ---
+### rfm69_fifo_threshold_set
+**description:** Sets device fifo threshold for triggering fifo level pin to `threshold`.
+**return:** `true` if SPI write was successful.
+**error:** `false` if SPI write fails.
+**
+```c
+bool rfm69_fifo_threshold_set(rfm69_context_t *rfm, uint8_t threshold);
+```
+
+---
 ### rfm69_payload_length_set
 **description:** Sets device payload length to `length`.  
 **return:** `true` if SPI write was successful.  
@@ -568,4 +638,160 @@ typedef enum _DAGC_SETTING {
 	RFM69_DAGC_IMPROVED_1 = 0x20,
 	RFM69_DAGC_IMPROVED_0 = 0x30
 } RFM69_DAGC_SETTING;
+```
+
+---
+### rfm69_dio0_config_set
+**description:** Sets output mode for DIO0 pin to `dio_config`.
+**return:** `true` if SPI write was successful.
+**error:** `false` if SPI write fails.
+```c
+bool rfm69_dio0_config_set(rfm69_context_t *rfm, RFM69_DIO0_CFG dio_config);
+```
+**usage notes:** Interrupt pin assignment varies based on device's current mode. See Rfm69 documentation.
+```c
+#define RFM69_DIO_0_MASK 0xC0
+#define _DIO_0_OFFSET    6
+typedef enum _DIO0_CFG {
+	// Tx
+    RFM69_DIO0_PKT_TX_PACKET_SENT = 0x00 << _DIO_0_OFFSET,
+    RFM69_DIO0_PKT_TX_READY       = 0x01 << _DIO_0_OFFSET,
+    RFM69_DIO0_PKT_TX_UNUSED      = 0x02 << _DIO_0_OFFSET,
+    RFM69_DIO0_PKT_TX_PLL_LOCK    = 0x03 << _DIO_0_OFFSET,
+	// Rx
+    RFM69_DIO0_PKT_RX_CRC_OK        = 0x00 << _DIO_0_OFFSET,
+    RFM69_DIO0_PKT_RX_PAYLOAD_READY = 0x01 << _DIO_0_OFFSET,
+    RFM69_DIO0_PKT_RX_SYNC_ADDRESS  = 0x02 << _DIO_0_OFFSET,
+    RFM69_DIO0_PKT_RX_RSSI          = 0x03 << _DIO_0_OFFSET,
+} RFM69_DIO0_CFG;
+```
+
+---
+### rfm69_dio1_config_set
+**description:** Sets output mode for DIO1 pin to `dio_config`.
+**return:** `true` if SPI write was successful.
+**error:** `false` if SPI write fails.
+```c
+bool rfm69_dio1_config_set(rfm69_context_t *rfm, RFM69_DIO1_CFG dio_config);
+```
+**usage notes:** Interrupt pin assignment varies based on device's current mode. See Rfm69 documentation.
+```c
+#define RFM69_DIO_1_MASK 0x30
+#define _DIO_1_OFFSET    4
+typedef enum _DIO1_CFG {
+	// Tx
+    RFM69_DIO1_PKT_TX_FIFO_LVL     = 0x00 << _DIO_1_OFFSET,
+    RFM69_DIO1_PKT_TX_FIFO_FULL    = 0x01 << _DIO_1_OFFSET,
+    RFM69_DIO1_PKT_TX_FIFO_N_EMPTY = 0x02 << _DIO_1_OFFSET,
+    RFM69_DIO1_PKT_TX_PLL_LOCK     = 0x03 << _DIO_1_OFFSET,
+	// Rx
+    RFM69_DIO1_PKT_RX_FIFO_LVL     = 0x00 << _DIO_1_OFFSET,
+    RFM69_DIO1_PKT_RX_FIFO_FULL    = 0x01 << _DIO_1_OFFSET,
+    RFM69_DIO1_PKT_RX_FIFO_N_EMPTY = 0x02 << _DIO_1_OFFSET,
+    RFM69_DIO1_PKT_RX_TIMEOUT      = 0x03 << _DIO_1_OFFSET,
+} RFM69_DIO1_CFG;
+```
+
+---
+### rfm69_dio2_config_set
+**description:** Sets output mode for DIO2 pin to `dio_config`.
+**return:** `true` if SPI write was successful.
+**error:** `false` if SPI write fails.
+```c
+bool rfm69_dio2_config_set(rfm69_context_t *rfm, RFM69_DIO2_CFG dio_config);
+```
+**usage notes:** Interrupt pin assignment varies based on device's current mode. See Rfm69 documentation.
+```c
+#define RFM69_DIO_2_MASK 0x0C
+#define _DIO_2_OFFSET    2
+typedef enum _DIO2_CFG {
+	// Tx
+    RFM69_DIO2_PKT_TX_FIFO_N_EMPTY = 0x00 << _DIO_2_OFFSET,
+    RFM69_DIO2_PKT_TX_DATA         = 0x01 << _DIO_2_OFFSET,
+    RFM69_DIO2_PKT_TX_UNUSED       = 0x02 << _DIO_2_OFFSET,
+    RFM69_DIO2_PKT_TX_AUTO_MODE    = 0x03 << _DIO_2_OFFSET,
+	// Rx
+    RFM69_DIO2_PKT_RX_FIFO_N_EMPTY = 0x00 << _DIO_2_OFFSET,
+    RFM69_DIO2_PKT_RX_DATA         = 0x01 << _DIO_2_OFFSET,
+    RFM69_DIO2_PKT_RX_UNUSED       = 0x02 << _DIO_2_OFFSET,
+    RFM69_DIO2_PKT_RX_AUTO_MODE    = 0x03 << _DIO_2_OFFSET,
+} RFM69_DIO2_CFG;
+```
+
+---
+### rfm69_dio3_config_set
+**description:** Sets output mode for DIO3 pin to `dio_config`.
+**return:** `true` if SPI write was successful.
+**error:** `false` if SPI write fails.
+```c
+bool rfm69_dio3_config_set(rfm69_context_t *rfm, RFM69_DIO3_CFG dio_config);
+```
+**usage notes:** Interrupt pin assignment varies based on device's current mode. See Rfm69 documentation.
+```c
+#define RFM69_DIO_3_MASK 0x03
+#define _DIO_3_OFFSET    0
+typedef enum _DIO3_CFG {
+	// Tx
+    RFM69_DIO3_PKT_TX_FIFO_FULL = 0x00 << _DIO_3_OFFSET,
+    RFM69_DIO3_PKT_TX_READY     = 0x01 << _DIO_3_OFFSET,
+    RFM69_DIO3_PKT_TX_UNUSED    = 0x02 << _DIO_3_OFFSET,
+    RFM69_DIO3_PKT_TX_PLL_LOCK  = 0x03 << _DIO_3_OFFSET,
+	// Rx	
+    RFM69_DIO3_PKT_RX_FIFO_FULL    = 0x00 << _DIO_3_OFFSET,
+    RFM69_DIO3_PKT_RX_RSSI         = 0x01 << _DIO_3_OFFSET,
+    RFM69_DIO3_PKT_RX_SYNC_ADDRESS = 0x02 << _DIO_3_OFFSET,
+    RFM69_DIO3_PKT_RX_PLL_LOCK     = 0x03 << _DIO_3_OFFSET,
+} RFM69_DIO3_CFG;
+```
+
+---
+### rfm69_dio4_config_set
+**description:** Sets output mode for DIO4 pin to `dio_config`.
+**return:** `true` if SPI write was successful.
+**error:** `false` if SPI write fails.
+```c
+bool rfm69_dio4_config_set(rfm69_context_t *rfm, RFM69_DIO4_CFG dio_config);
+```
+**usage notes:** Interrupt pin assignment varies based on device's current mode. See Rfm69 documentation.
+```c
+#define RFM69_DIO_4_MASK 0xC0
+#define _DIO_4_OFFSET    6
+typedef enum _DIO4_CFG {
+	// Tx
+    RFM69_DIO4_PKT_TX_MODE_READY = 0x00 << _DIO_4_OFFSET,
+    RFM69_DIO4_PKT_TX_READY      = 0x01 << _DIO_4_OFFSET,
+    RFM69_DIO4_PKT_TX_UNUSED     = 0x02 << _DIO_4_OFFSET,
+    RFM69_DIO4_PKT_TX_PLL_LOCK   = 0x03 << _DIO_4_OFFSET,
+	// Rx
+    RFM69_DIO4_PKT_RX_TIMEOUT  = 0x00 << _DIO_4_OFFSET,
+    RFM69_DIO4_PKT_RX_RSSI     = 0x01 << _DIO_4_OFFSET,
+    RFM69_DIO4_PKT_RX_READY    = 0x02 << _DIO_4_OFFSET,
+    RFM69_DIO4_PKT_RX_PLL_LOCK = 0x03 << _DIO_4_OFFSET,
+} RFM69_DIO4_CFG;
+```
+
+---
+### rfm69_dio5_config_set
+**description:** Sets output mode for DIO5 pin to `dio_config`.
+**return:** `true` if SPI write was successful.
+**error:** `false` if SPI write fails.
+```c
+bool rfm69_dio5_config_set(rfm69_context_t *rfm, RFM69_DIO5_CFG dio_config);
+```
+**usage notes:** Interrupt pin assignment varies based on device's current mode. See Rfm69 documentation.
+```c
+#define RFM69_DIO_5_MASK 0x30
+#define _DIO_5_OFFSET    4
+typedef enum _DIO5_CFG {
+	// Tx
+    RFM69_DIO5_PKT_TX_CLK_OUT    = 0x00 << _DIO_5_OFFSET,
+    RFM69_DIO5_PKT_TX_DATA       = 0x01 << _DIO_5_OFFSET,
+    RFM69_DIO5_PKT_TX_UNUSED     = 0x02 << _DIO_5_OFFSET,
+    RFM69_DIO5_PKT_TX_MODE_READY = 0x03 << _DIO_5_OFFSET,
+	// Rx
+    RFM69_DIO5_PKT_RX_CLK_OUT    = 0x00 << _DIO_5_OFFSET,
+    RFM69_DIO5_PKT_RX_DATA       = 0x01 << _DIO_5_OFFSET,
+    RFM69_DIO5_PKT_RX_UNUSED     = 0x02 << _DIO_5_OFFSET,
+    RFM69_DIO5_PKT_RX_MODE_READY = 0x03 << _DIO_5_OFFSET,
+} RFM69_DIO5_CFG;
 ```
