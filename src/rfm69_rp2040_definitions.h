@@ -133,7 +133,6 @@
 #define RFM69_FIFO_SIZE             66 // The FIFO size is fixed to 66 bytes 
 #define RFM69_FSTEP                 61
 
-
 typedef enum _RETURN {
     RFM69_OK                      =  0,
     RFM69_REGISTER_TEST_FAIL      = -2,
