@@ -655,12 +655,28 @@ bool rfm69_fifo_threshold_set(rfm69_context_t *rfm, uint8_t threshold) {
     );
 }
 
+bool rfm69_fifo_threshold_get(rfm69_context_t *rfm, uint8_t *threshold) {
+    return rfm69_read_masked(
+            rfm,
+            RFM69_REG_FIFO_THRESH,
+            threshold,
+            _FIFO_THRESHOLD_MASK);
+}
 
 bool rfm69_payload_length_set(rfm69_context_t *rfm, uint8_t length) {
     return rfm69_write(
             rfm,
             RFM69_REG_PAYLOAD_LENGTH,
             &length,
+            1
+    );
+}
+
+bool rfm69_payload_length_get(rfm69_context_t *rfm, uint8_t *length) {
+    return rfm69_read(
+            rfm,
+            RFM69_REG_PAYLOAD_LENGTH,
+            length,
             1
     );
 }
@@ -673,6 +689,7 @@ bool rfm69_packet_format_set(rfm69_context_t *rfm, RFM69_PACKET_FORMAT format) {
 			0x80
 	);
 }
+
 bool rfm69_packet_format_get(rfm69_context_t *rfm, uint8_t *format) {
     return rfm69_read_masked(
             rfm,
@@ -742,6 +759,25 @@ bool rfm69_crc_autoclear_set(rfm69_context_t *rfm, bool set) {
             !set << 3,
             0x08
     );
+}
+
+bool rfm69_crc_autoclear_get(rfm69_context_t *rfm, bool *set) {
+    uint8_t buf = 0;
+    bool result = rfm69_read(rfm,
+                             RFM69_REG_PACKET_CONFIG_1,
+                             &buf,
+                             1);
+
+    if (!result) {
+        return result;
+    }
+
+    buf = buf >> 3;
+    buf &= 0x01;
+
+    *set = !(bool)buf;
+
+    return true;
 }
 
 bool rfm69_dcfree_set(rfm69_context_t *rfm, RFM69_DCFREE_SETTING setting) {

@@ -236,8 +236,10 @@ bool _hp_set(rfm69_context_t *rfm, RFM69_HP_CONFIG enable);
 bool rfm69_tx_start_condition_set(rfm69_context_t *rfm, RFM69_TX_START_CONDITION condition);
 
 bool rfm69_fifo_threshold_set(rfm69_context_t *rfm, uint8_t threshold);
+bool rfm69_fifo_threshold_get(rfm69_context_t *rfm, uint8_t *threshold);
 
 bool rfm69_payload_length_set(rfm69_context_t *rfm, uint8_t length);
+bool rfm69_payload_length_get(rfm69_context_t *rfm, uint8_t *length);
 bool rfm69_packet_format_set(rfm69_context_t *rfm, RFM69_PACKET_FORMAT format);
 
 bool rfm69_packet_format_get(rfm69_context_t *rfm, uint8_t *format);
@@ -255,6 +257,7 @@ bool rfm69_broadcast_address_get(rfm69_context_t *rfm, uint8_t *address);
 bool rfm69_sync_value_set(rfm69_context_t *rfm, const uint8_t *value, uint8_t size);
 
 bool rfm69_crc_autoclear_set(rfm69_context_t *rfm, bool set);
+bool rfm69_crc_autoclear_get(rfm69_context_t *rfm, bool *set);
 
 bool rfm69_dcfree_set(rfm69_context_t *rfm, RFM69_DCFREE_SETTING setting);
 bool rfm69_dcfree_get(rfm69_context_t *rfm, RFM69_DCFREE_SETTING *setting);
