@@ -40,7 +40,7 @@ I am still very much actively working on some of the higher features of this lib
 I think these changes are the correct direction and I look foward to being happier with the state of the RUDP code, as well as iproving higher level support for some of the RFM69s more advanced features.
 
 **2025.04.13:**  
-This marks the 1.0 release. With 
+This marks the 1.0 release. I felt this cleanup and release was necessary to finally establish a baseline and get all documentation and the repo up to date. Because the RUDP interface was removed with this, I will be pushing hard to get the rudp library documentated and stable.
 
 
 ---  
