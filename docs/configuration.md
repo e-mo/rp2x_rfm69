@@ -5,4 +5,4 @@ Low power labs also produces a set of drivers and a higher level interface for R
 proper C interface. However, this forum discussion is VERY helpful (and saved my idiot life) when I was trying to actually get my radios to talk
 initially.
 
-Todo: Create low level radio example
+TODO: Distill this information into a simple config tutorial
