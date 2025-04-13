@@ -19,7 +19,7 @@ I am breaking all higher level functionality into a new repo to keep these drive
 
 ---
 ## Examples
-[tx/rx](https://github.com/e-mo/rfm69_rp2040/tree/main/examples/low_level)  
+[tx/rx with polling](https://github.com/e-mo/rfm69_rp2040/tree/main/examples)  
 
 ---
 ## Other Helpful Stuff
