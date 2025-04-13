@@ -20,7 +20,7 @@
 
 // #include <stdio.h>
 
-#include "rfm69_rp2040_interface.h"
+#include "rp2x_rfm69_interface.h"
 #include "stdlib.h"
 #include "hardware/sync.h"
 

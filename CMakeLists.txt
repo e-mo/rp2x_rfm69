@@ -5,7 +5,7 @@ project(rp2x_rfm69_lib C CXX ASM)
 add_library(rp2x_rfm69_lib INTERFACE)
 
 target_sources(rp2x_rfm69_lib INTERFACE
-	src/rfm69_rp2040_interface.c
+	src/rp2x_rfm69_interface.c
 )
 
 target_include_directories(rp2x_rfm69_lib INTERFACE

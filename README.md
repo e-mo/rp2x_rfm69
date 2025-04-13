@@ -38,4 +38,4 @@ I think these changes are the correct direction and I look foward to being happi
 
 ---  
 If you need help or have a suggestion/question of any kind, contact me:  
-<emorse@tech.dev>
+<emorse8686@gmail.com>

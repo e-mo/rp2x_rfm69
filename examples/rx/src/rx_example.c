@@ -51,8 +51,6 @@ int main() {
     rfm69_bitrate_set(&rfm, RFM69_MODEM_BITRATE_57_6);
     // ~2 beta 
     rfm69_fdev_set(&rfm, 70000);
-    // 915MHz 
-    rfm69_frequency_set(&rfm, 915);
     // RXBW >= fdev + br/2
     rfm69_rxbw_set(&rfm, RFM69_RXBW_MANTISSA_20, 2);
     rfm69_dcfree_set(&rfm, RFM69_DCFREE_WHITENING);
@@ -68,11 +66,12 @@ int main() {
 	rfm69_payload_length_set(&rfm, 100);
 
 	uint8_t buf[100] = {0};
-	rfm69_mode_set(&rfm, RFM69_OP_MODE_RX);
 	
 	int i = 0;
 	// Wait for packets
 	for(ever) {
+
+		rfm69_mode_set(&rfm, RFM69_OP_MODE_RX);
 
 		// Poll payload ready flag
 		bool state = false;
@@ -81,6 +80,10 @@ int main() {
 			sleep_ms(10);
         }
         printf("%i: Packet received!\n", i);
+
+		// Go to sleep before reading FIFO
+		// NOTE: consult RFM69 datasheet to understand when the FIFO autoclears on mode change
+		rfm69_mode_set(&rfm, RFM69_OP_MODE_SLEEP);
 
 		// Read payload size byte from FIFO
 		rfm69_read(&rfm, RFM69_REG_FIFO, buf, 1);

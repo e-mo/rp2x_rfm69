@@ -20,25 +20,25 @@ endif()
 
 # step back one level on includes and sources because we are hiding CMakeLists file
 
-set(target "rudp_tx_example")
+set(target "rfm69_tx_example")
 project(${target} C CXX ASM)
 
-set(RFM69_LIB_PATH "../../..")
-add_subdirectory(${RFM69_LIB_PATH} libs/rfm69_rp2040)
+set(RFM69_LIB_PATH "../..")
+add_subdirectory(${RFM69_LIB_PATH} libs/rp2x_rfm69)
 
 # Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(${target} src/rudp_tx_example.c)
+add_executable(${target} src/tx_example.c)
 
 pico_enable_stdio_uart(${target} 0)
 pico_enable_stdio_usb(${target} 1)
 
 # Add the standard library to the build
 target_link_libraries(${target} pico_stdlib)
-target_link_libraries(${target} rfm69_rp2040)
+target_link_libraries(${target} rp2x_rfm69_lib)
 
 
 # Add the standard include files to the build

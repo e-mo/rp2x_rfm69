@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "pico/stdlib.h"
-#include "rfm69_rp2040.h"
+#include "rp2x_rfm69.h"
 #include "tusb.h"
 
 #define ever ;;
@@ -21,6 +21,9 @@ int main() {
 	//while (!tud_cdc_connected()) { sleep_ms(100); };
 
 	// INITIALIZATION
+	// Since SPI can be a shared peripheral, the user must
+	// initialize the SPI instance before passing it to the
+	// radio init function.
 
 	// SPI init
     spi_init(SPI_INST, 1000*1000);
@@ -33,6 +36,8 @@ int main() {
     gpio_set_dir(PIN_CS, GPIO_OUT);
     gpio_put(PIN_CS, 1);
 
+	// No need to set any DIO pins since we aren't using them
+	// but spi, pin_cs and pin_rst must always be defined.
 	rfm69_context_t rfm;
 	struct rfm69_config_s config = {
 		.spi = SPI_INST,
@@ -51,13 +56,10 @@ int main() {
     rfm69_bitrate_set(&rfm, RFM69_MODEM_BITRATE_57_6);
     // ~2 beta 
     rfm69_fdev_set(&rfm, 70000);
-    // 915MHz 
-    rfm69_frequency_set(&rfm, 915);
     // RXBW >= fdev + br/2
     rfm69_rxbw_set(&rfm, RFM69_RXBW_MANTISSA_20, 2);
     rfm69_dcfree_set(&rfm, RFM69_DCFREE_WHITENING);
-	rfm69_power_level_set(&rfm, 20);
-	
+
 	// Set addresses
 
 	const uint8_t tx_address = 0x00; // Our address
@@ -76,24 +78,6 @@ int main() {
 	// Send payload every 1 sec
 	uint sent = 0;
 	for(ever) {
-
-		uint8_t buf;
-        // Print registers 0x01 -> 0x4F
-        for (int i = 1; i < 0x50; i++) {
-            rfm69_read(
-                    &rfm,
-                    i,
-                    &buf,
-                    1
-            );
-            printf("0x%02X: %02X\n", i, buf);
-        }
-		rfm69_read(&rfm, 0x5A, &buf, 1);
-		printf("0x5A: %02X\n", buf);
-		rfm69_read(&rfm, 0x5C, &buf, 1);
-		printf("0x5C: %02X\n", buf);
-        printf("\n");
-		rfm69_power_level_set(&rfm, 20);
 
 		// Fill FIFO while in sleep
 		rfm69_write(&rfm, RFM69_REG_FIFO, buffer, (sizeof buffer));

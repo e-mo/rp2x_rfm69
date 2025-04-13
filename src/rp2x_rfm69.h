@@ -21,10 +21,6 @@
 #ifndef RFM69_PICO_H
 #define RFM69_PICO_H
 
-// Must be included first
-#include "rfm69_rp2040_interface.h"
-
-//#include "rfm69_rp2040_rudp.h"
-//#include "rfm69_rp2040_rudp_dio.h"
+#include "rp2x_rfm69_interface.h"
 
 #endif // RFM69_PICO_H

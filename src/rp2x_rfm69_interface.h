@@ -26,7 +26,7 @@
 #include "pico/stdlib.h"
 #include "hardware/spi.h"
 
-#include "rfm69_rp2040_definitions.h"
+#include "rp2x_rfm69_definitions.h"
 
 #define RFM69_DEFAULT_BROADCAST_ADDR 0xFF
 #define RFM69_DEFAULT_ADDR           0x00
