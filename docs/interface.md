@@ -184,8 +184,8 @@ bool rfm69_frequency_get(rfm69_context_t *rfm, uint23_t *frequency);
   
 ---
 ### rfm69_frequency_compute_closest
-**description:** Computes closest available frequency to `frequency` in Hz
-**return:** Closest available frequency in Hz.  
+**description:** Computes closest available frequency to `frequency` in Hz  
+**return:** Closest available frequency in Hz.   
 **error:** none.  
 ```c
 uint32_t rfm69_frequency_compute_closest(uint23_t frequency);
@@ -221,7 +221,7 @@ B = 2 * Fdev/Bitrate
 ```
 
 ### rfm69_fdev_compute_closest(uint32_t fdev);
-**description:** Computes closest available frequency deviation to `fdev` in Hz
+**description:** Computes closest available frequency deviation to `fdev` in Hz  
 **return:** Closest available frequency deviation in Hz.  
 **error:** none.  
 ```c
@@ -257,7 +257,7 @@ typedef enum _RXBW_MANTISSA {
 
 ---
 ### rfm69_rxbw_get
-**description:** Returns `mantissa` set to current rxbw mantissa and `exponent` set to current rxbw exponent.
+**description:** Returns `mantissa` set to current rxbw mantissa and `exponent` set to current rxbw exponent.  
 **return:** `true` if SPI write was successful.  
 **error:** `false` if SPI write fails.  
 ```c
@@ -350,7 +350,7 @@ bool rfm69_mode_get(rfm69_context_t *rfm, uint8_t *mode);
 ### rfm69_data_mode_set
 **description:** Sets device data mode to `mode`.  
 **return:** `true` if SPI write was successful.  
-**error:** `false` if SPI write fails.
+**error:** `false` if SPI write fails.  
 ```c
 bool rfm69_data_mode_set(rfm69_context_t *rfm, RFM69_DATA_MODE mode);
 ```
@@ -379,7 +379,7 @@ bool rfm69_data_mode_get(rfm69_context_t *rfm, uint8_t *mode);
 ### rfm69_modulation_type_set
 **description:** Sets device modulation type to `type`.  
 **return:** `true` if SPI write was successful.  
-**error:** `false` if SPI write fails.
+**error:** `false` if SPI write fails.  
 ```c
 bool rfm69_modulation_type_set(rfm69_context_t *rfm, RFM69_MODULATION_TYPE type);
 
@@ -399,7 +399,7 @@ typedef enum _MODULATION_TYPE {
 ### rfm69_modulation_type_get
 **description:** Sets `type` to reflect current modulation type.  
 **return:** `true` if SPI write was successful.  
-**error:** `false` if SPI write fails.
+**error:** `false` if SPI write fails.  
 ```c
 bool rfm69_modulation_type_get(rfm69_context_t *rfm, uint8_t *type);
 ```
@@ -435,18 +435,18 @@ bool rfm69_modulation_shaping_get(rfm69_context_t *rfm, uint8_t *shaping);
 
 ---
 ### rfm69_rssi_measurment_get
-**description:** Sets `rssi` to last RSSI value measured by device.
-**return:** `true` if SPI write was successful.
-**error:** `false` if SPI write fails.
+**description:** Sets `rssi` to last RSSI value measured by device.  
+**return:** `true` if SPI write was successful.  
+**error:** `false` if SPI write fails.  
 ```c
 bool rfm69_rssi_measurment_get(rfm69_context_t *rfm, int16_t *rssi);
 ```
 
 ---
 ### rfm69_rssi_measurment_start
-**description:** Trigger device to begin RSSI measurement.
-**return:** `true` if SPI write was successful.
-**error:** `false` if SPI write fails.
+**description:** Trigger device to begin RSSI measurement.  
+**return:** `true` if SPI write was successful.  
+**error:** `false` if SPI write fails.  
 ```c
 bool rfm69_rssi_measurment_start(rfm69_context_t *rfm);
 ```
@@ -474,7 +474,7 @@ bool rfm69_power_level_set(rfm69_context_t *rfm, int8_t pa_level);
 ### rfm69_power_level_get
 **description:** Sets `pa_level` to reflect current device power level.   
 **return:** none.  
-**error:** none. 
+**error:** none.   
 ```c
 void rfm69_power_level_get(rfm69_context_t *rfm, uint8_t *pa_level);
 ```
@@ -483,8 +483,8 @@ void rfm69_power_level_get(rfm69_context_t *rfm, uint8_t *pa_level);
 ---
 ### rfm69_tx_start_condition_set
 **description:** Sets device transmit start condition to `condition`.  
-**return:** `true` if SPI write was successful.
-**error:** `false` if SPI write fails.
+**return:** `true` if SPI write was successful.   
+**error:** `false` if SPI write fails.  
 ```c
 bool rfm69_tx_start_condition_set(rfm69_context_t *rfm, RFM69_TX_START_CONDITION condition);
 ```
@@ -500,9 +500,9 @@ typedef enum _TX_START_CONDITION {
 
 ---
 ### rfm69_fifo_threshold_set
-**description:** Sets device fifo threshold for triggering fifo level pin to `threshold`.
-**return:** `true` if SPI write was successful.
-**error:** `false` if SPI write fails.
+**description:** Sets device fifo threshold for triggering fifo level pin to `threshold`.  
+**return:** `true` if SPI write was successful.  
+**error:** `false` if SPI write fails.  
 **
 ```c
 bool rfm69_fifo_threshold_set(rfm69_context_t *rfm, uint8_t threshold);
@@ -565,7 +565,7 @@ bool rfm69_node_address_set(rfm69_context_t *rfm, uint8_t address);
 
 ---
 ### rfm69_node_address_get
-**description:** Sets `address` to current device node address.
+**description:** Sets `address` to current device node address.  
 **return:** none.  
 **error:** none.  
 ```c
@@ -576,8 +576,8 @@ void rfm69_node_address_get(rfm69_context_t *rfm, uint8_t *address);
 ---
 ### rfm69_broadcast_address_set
 **description:** Sets device broadcast address to `address`.  
-**return:** `true` if SPI write was successful.
-**error:** `false` if SPI write fails.
+**return:** `true` if SPI write was successful.  
+**error:** `false` if SPI write fails.  
 ```c
 bool rfm69_broadcast_address_set(rfm69_context_t *rfm, uint8_t address);
 ```
@@ -623,9 +623,9 @@ typedef enum _DCFREE_SETTING {
 
 ---
 ### rfm69_dagc_set
-**description:** Sets device digital AGC mode to `setting`.
-**return:** `true` if SPI write was successful.
-**error:** `false` if SPI write fails.
+**description:** Sets device digital AGC mode to `setting`.  
+**return:** `true` if SPI write was successful.  
+**error:** `false` if SPI write fails.  
 ```c
 bool rfm69_dagc_set(rfm69_context_t *rfm, RFM69_DAGC_SETTING setting);
 ```
@@ -642,9 +642,9 @@ typedef enum _DAGC_SETTING {
 
 ---
 ### rfm69_dio0_config_set
-**description:** Sets output mode for DIO0 pin to `dio_config`.
-**return:** `true` if SPI write was successful.
-**error:** `false` if SPI write fails.
+**description:** Sets output mode for DIO0 pin to `dio_config`.  
+**return:** `true` if SPI write was successful.  
+**error:** `false` if SPI write fails.  
 ```c
 bool rfm69_dio0_config_set(rfm69_context_t *rfm, RFM69_DIO0_CFG dio_config);
 ```
@@ -668,9 +668,9 @@ typedef enum _DIO0_CFG {
 
 ---
 ### rfm69_dio1_config_set
-**description:** Sets output mode for DIO1 pin to `dio_config`.
-**return:** `true` if SPI write was successful.
-**error:** `false` if SPI write fails.
+**description:** Sets output mode for DIO1 pin to `dio_config`.  
+**return:** `true` if SPI write was successful.  
+**error:** `false` if SPI write fails.  
 ```c
 bool rfm69_dio1_config_set(rfm69_context_t *rfm, RFM69_DIO1_CFG dio_config);
 ```
@@ -694,9 +694,9 @@ typedef enum _DIO1_CFG {
 
 ---
 ### rfm69_dio2_config_set
-**description:** Sets output mode for DIO2 pin to `dio_config`.
-**return:** `true` if SPI write was successful.
-**error:** `false` if SPI write fails.
+**description:** Sets output mode for DIO2 pin to `dio_config`.  
+**return:** `true` if SPI write was successful.  
+**error:** `false` if SPI write fails.  
 ```c
 bool rfm69_dio2_config_set(rfm69_context_t *rfm, RFM69_DIO2_CFG dio_config);
 ```
@@ -720,9 +720,9 @@ typedef enum _DIO2_CFG {
 
 ---
 ### rfm69_dio3_config_set
-**description:** Sets output mode for DIO3 pin to `dio_config`.
-**return:** `true` if SPI write was successful.
-**error:** `false` if SPI write fails.
+**description:** Sets output mode for DIO3 pin to `dio_config`.  
+**return:** `true` if SPI write was successful.  
+**error:** `false` if SPI write fails.  
 ```c
 bool rfm69_dio3_config_set(rfm69_context_t *rfm, RFM69_DIO3_CFG dio_config);
 ```
@@ -746,9 +746,9 @@ typedef enum _DIO3_CFG {
 
 ---
 ### rfm69_dio4_config_set
-**description:** Sets output mode for DIO4 pin to `dio_config`.
-**return:** `true` if SPI write was successful.
-**error:** `false` if SPI write fails.
+**description:** Sets output mode for DIO4 pin to `dio_config`.  
+**return:** `true` if SPI write was successful.  
+**error:** `false` if SPI write fails.  
 ```c
 bool rfm69_dio4_config_set(rfm69_context_t *rfm, RFM69_DIO4_CFG dio_config);
 ```
@@ -772,9 +772,9 @@ typedef enum _DIO4_CFG {
 
 ---
 ### rfm69_dio5_config_set
-**description:** Sets output mode for DIO5 pin to `dio_config`.
-**return:** `true` if SPI write was successful.
-**error:** `false` if SPI write fails.
+**description:** Sets output mode for DIO5 pin to `dio_config`.  
+**return:** `true` if SPI write was successful.  
+**error:** `false` if SPI write fails.  
 ```c
 bool rfm69_dio5_config_set(rfm69_context_t *rfm, RFM69_DIO5_CFG dio_config);
 ```
