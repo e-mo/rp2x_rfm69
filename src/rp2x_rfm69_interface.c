@@ -709,19 +709,14 @@ bool rfm69_address_filter_set(rfm69_context_t *rfm, RFM69_ADDRESS_FILTER filter)
 
 bool rfm69_node_address_set(rfm69_context_t *rfm, uint8_t address) {
     if (!rfm69_write( rfm, RFM69_REG_NODE_ADRS, &address, 1))
-		return false;
+        return false;
 
-	rfm->address = address;
-	return true;
+    return true;
 }
 
 void rfm69_node_address_get(rfm69_context_t *rfm, uint8_t *address) {
-	// Seems silly to do all this if we cache the value on set
-    //if (!rfm69_read( rfm, RFM69_REG_NODE_ADRS, address, 1))
-	//	return false;
-
-    //if (*address != rfm->address)
-	//	return false;
+    if (!rfm69_read( rfm, RFM69_REG_NODE_ADRS, address, 1))
+	return false;
 
     *address = rfm->address;
 }
