@@ -210,6 +210,9 @@ bool rfm69_modulation_type_get(rfm69_context_t *rfm, uint8_t *type);
 bool rfm69_modulation_shaping_set(rfm69_context_t *rfm, RFM69_MODULATION_SHAPING shaping);
 bool rfm69_modulation_shaping_get(rfm69_context_t *rfm, uint8_t *shaping);
 
+bool rfm69_modulation_afc_beta(rfm69_context_t *rfm, bool beta_on);
+bool rfm69_modulation_afc(rfm69_context_t *rfm, uint8_t afc);
+
 // Read value of last RSSI measurment
 bool rfm69_rssi_measurment_get(rfm69_context_t *rfm, int16_t *rssi);
 
