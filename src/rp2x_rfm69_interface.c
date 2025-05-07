@@ -427,7 +427,7 @@ bool rfm69_modulation_type_get(rfm69_context_t *rfm, uint8_t *type) {
     );
 }
 
-bool rfm69_modulation_afc_beta(rfm69_context_t *rfm, bool beta_on) {
+bool rfm69_modulation_afc_beta_set(rfm69_context_t *rfm, bool beta_on) {
     uint8_t beta_mask = 0;
 
     if (beta_on) {
@@ -442,12 +442,37 @@ bool rfm69_modulation_afc_beta(rfm69_context_t *rfm, bool beta_on) {
     );
 }
 
-bool rfm69_modulation_afc(rfm69_context_t *rfm, uint8_t afc) {
+bool rfm69_modulation_afc_beta_get(rfm69_context_t *rfm, bool *beta_on) {
+    uint8_t buf = 0;
+    uint8_t beta_on_mask = 1 << 5;
+
+    bool read_result = rfm69_read_masked(
+                        rfm,
+                        RFM69_REG_AFC_CTRL,
+                        &buf,
+                        beta_on_mask
+    );
+
+    if (!read_result)
+        return false;
+
+    *beta_on = (buf > 0);
+
+    return true;
+}
+
+bool rfm69_modulation_afc_set(rfm69_context_t *rfm, uint8_t afc) {
     return rfm69_write(
             rfm,
             RFM69_REG_TEST_AFC,
             &afc,
             1);
+}
+
+bool rfm69_modulation_afc_get(rfm69_context_t *rfm, uint8_t *afc) {
+    if (!rfm69_read(rfm, RFM69_REG_TEST_AFC, afc, 1)) return false;
+
+    return true;
 }
 
 bool rfm69_modulation_shaping_set(rfm69_context_t *rfm, RFM69_MODULATION_SHAPING shaping) {
@@ -739,11 +764,11 @@ bool rfm69_node_address_set(rfm69_context_t *rfm, uint8_t address) {
     return true;
 }
 
-void rfm69_node_address_get(rfm69_context_t *rfm, uint8_t *address) {
+bool rfm69_node_address_get(rfm69_context_t *rfm, uint8_t *address) {
     if (!rfm69_read( rfm, RFM69_REG_NODE_ADRS, address, 1))
-	return false;
+        return false;
 
-    *address = rfm->address;
+    return true;
 }
 
 bool rfm69_broadcast_address_set(rfm69_context_t *rfm, uint8_t address) {
