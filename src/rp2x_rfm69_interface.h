@@ -210,6 +210,14 @@ bool rfm69_modulation_type_get(rfm69_context_t *rfm, uint8_t *type);
 bool rfm69_modulation_shaping_set(rfm69_context_t *rfm, RFM69_MODULATION_SHAPING shaping);
 bool rfm69_modulation_shaping_get(rfm69_context_t *rfm, uint8_t *shaping);
 
+// Turn on afc
+bool rfm69_modulation_afc_beta_set(rfm69_context_t *rfm, bool beta_on);
+bool rfm69_modulation_afc_beta_get(rfm69_context_t *rfm, bool *beta_on);
+
+// Set the afc step
+bool rfm69_modulation_afc_set(rfm69_context_t *rfm, uint8_t afc);
+bool rfm69_modulation_afc_get(rfm69_context_t *rfm, uint8_t *afc);
+
 // Read value of last RSSI measurment
 bool rfm69_rssi_measurment_get(rfm69_context_t *rfm, int16_t *rssi);
 
@@ -250,7 +258,7 @@ bool rfm69_node_address_set(rfm69_context_t *rfm, uint8_t address);
 
 // No return because it simply returns the cached value from previous set
 // Only valid after init
-void rfm69_node_address_get(rfm69_context_t *rfm, uint8_t *address);
+bool rfm69_node_address_get(rfm69_context_t *rfm, uint8_t *address);
 bool rfm69_broadcast_address_set(rfm69_context_t *rfm, uint8_t address);
 bool rfm69_broadcast_address_get(rfm69_context_t *rfm, uint8_t *address);
 

@@ -60,6 +60,8 @@ bool rfm69_init(
     gpio_set_dir(config->pin_rst, GPIO_OUT);
     gpio_put(config->pin_rst, 0);
 
+    uint8_t pream = RFM69_DEFAULT_PREAMBLE_LEN;
+    rfm69_write(rfm, RFM69_REG_PREAMBLE_LSB, &pream, 1);
     // Reset and then try to read version register
     // As long as this returns anything other than 0 or 255, this passes.
     // The most common return is 0x24, but I can't guarantee that future
@@ -425,6 +427,54 @@ bool rfm69_modulation_type_get(rfm69_context_t *rfm, uint8_t *type) {
     );
 }
 
+bool rfm69_modulation_afc_beta_set(rfm69_context_t *rfm, bool beta_on) {
+    uint8_t beta_mask = 0;
+
+    if (beta_on) {
+        beta_mask = 1 << 5;
+    }
+
+    return rfm69_write_masked(
+            rfm,
+            RFM69_REG_AFC_CTRL,
+            beta_mask,
+            beta_mask 
+    );
+}
+
+bool rfm69_modulation_afc_beta_get(rfm69_context_t *rfm, bool *beta_on) {
+    uint8_t buf = 0;
+    uint8_t beta_on_mask = 1 << 5;
+
+    bool read_result = rfm69_read_masked(
+                        rfm,
+                        RFM69_REG_AFC_CTRL,
+                        &buf,
+                        beta_on_mask
+    );
+
+    if (!read_result)
+        return false;
+
+    *beta_on = (buf > 0);
+
+    return true;
+}
+
+bool rfm69_modulation_afc_set(rfm69_context_t *rfm, uint8_t afc) {
+    return rfm69_write(
+            rfm,
+            RFM69_REG_TEST_AFC,
+            &afc,
+            1);
+}
+
+bool rfm69_modulation_afc_get(rfm69_context_t *rfm, uint8_t *afc) {
+    if (!rfm69_read(rfm, RFM69_REG_TEST_AFC, afc, 1)) return false;
+
+    return true;
+}
+
 bool rfm69_modulation_shaping_set(rfm69_context_t *rfm, RFM69_MODULATION_SHAPING shaping) {
     return rfm69_write_masked(
             rfm,
@@ -714,11 +764,11 @@ bool rfm69_node_address_set(rfm69_context_t *rfm, uint8_t address) {
     return true;
 }
 
-void rfm69_node_address_get(rfm69_context_t *rfm, uint8_t *address) {
+bool rfm69_node_address_get(rfm69_context_t *rfm, uint8_t *address) {
     if (!rfm69_read( rfm, RFM69_REG_NODE_ADRS, address, 1))
-	return false;
+        return false;
 
-    *address = rfm->address;
+    return true;
 }
 
 bool rfm69_broadcast_address_set(rfm69_context_t *rfm, uint8_t address) {
