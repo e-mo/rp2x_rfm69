@@ -219,10 +219,10 @@ bool rfm69_modulation_afc_set(rfm69_context_t *rfm, uint8_t afc);
 bool rfm69_modulation_afc_get(rfm69_context_t *rfm, uint8_t *afc);
 
 // Read value of last RSSI measurment
-bool rfm69_rssi_measurment_get(rfm69_context_t *rfm, int16_t *rssi);
+bool rfm69_rssi_measurement_get(rfm69_context_t *rfm, int16_t *rssi);
 
 // Trigger a new RSSI reading
-bool rfm69_rssi_measurment_start(rfm69_context_t *rfm);
+bool rfm69_rssi_measurement_start(rfm69_context_t *rfm);
 bool rfm69_rssi_threshold_set(rfm69_context_t *rfm, uint8_t threshold);
 
 // Sets power level of module.
