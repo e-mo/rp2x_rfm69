@@ -494,7 +494,7 @@ bool rfm69_modulation_shaping_get(rfm69_context_t *rfm, uint8_t *shaping) {
 }
 
 //reads rssi - see p.68 of rfm69 datasheet
-bool rfm69_rssi_measurement_get(rfm69_context_t *rfm, int16_t *rssi) {
+bool rfm69_rssi_measurement_get(rfm69_context_t *rfm, int *rssi) {
 	uint8_t reg;
 
 	if (!rfm69_read(rfm, RFM69_REG_RSSI_CONFIG, &reg, 1)) return false;
@@ -507,8 +507,7 @@ bool rfm69_rssi_measurement_get(rfm69_context_t *rfm, int16_t *rssi) {
 
 	if(!rfm69_read(rfm, RFM69_REG_RSSI_VALUE, &reg, 1)) return false;
 
-	*rssi = -((int16_t)(reg >> 1));
-
+	*rssi = -(int)(reg >> 1);
 	return true;
 }
 

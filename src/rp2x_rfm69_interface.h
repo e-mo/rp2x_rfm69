@@ -219,7 +219,7 @@ bool rfm69_modulation_afc_set(rfm69_context_t *rfm, uint8_t afc);
 bool rfm69_modulation_afc_get(rfm69_context_t *rfm, uint8_t *afc);
 
 // Read value of last RSSI measurement
-bool rfm69_rssi_measurement_get(rfm69_context_t *rfm, int16_t *rssi);
+bool rfm69_rssi_measurement_get(rfm69_context_t *rfm, int *rssi);
 
 // Trigger a new RSSI reading
 bool rfm69_rssi_measurement_start(rfm69_context_t *rfm);
