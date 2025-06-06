@@ -37,8 +37,7 @@
 bool rfm69_init(
         rfm69_context_t *rfm,
 		const struct rfm69_config_s *config
-)
-{
+) {
 	bool success = false;
 
 	rfm->spi = config->spi;
@@ -60,8 +59,6 @@ bool rfm69_init(
     gpio_set_dir(config->pin_rst, GPIO_OUT);
     gpio_put(config->pin_rst, 0);
 
-    uint8_t pream = RFM69_DEFAULT_PREAMBLE_LEN;
-    rfm69_write(rfm, RFM69_REG_PREAMBLE_LSB, &pream, 1);
     // Reset and then try to read version register
     // As long as this returns anything other than 0 or 255, this passes.
     // The most common return is 0x24, but I can't guarantee that future
@@ -82,16 +79,18 @@ bool rfm69_init(
 	rfm69_node_address_set(rfm, RFM69_DEFAULT_ADDR);
 	rfm69_broadcast_address_set(rfm, RFM69_DEFAULT_BROADCAST_ADDR);
 	rfm69_address_filter_set(rfm, RFM69_FILTER_NODE_BROADCAST);
-
+	
 	// You have no idea how important this is and how odd
-	// the radio can behave with it off
+	// the radio can behave with it off.
 	rfm69_dagc_set(rfm, RFM69_DAGC_IMPROVED_0);
 
 	//Set sync value (essentially functions as subnet)
 	rfm69_sync_value_set(rfm, RFM69_DEFAULT_SYNC_WORD, RFM69_DEFAULT_SYNC_WORD_LEN);
 
 	success = true;
+	rfm69_mode_set(rfm, RFM69_OP_MODE_SLEEP);
 RETURN:
+
     return success;
 }
 
@@ -126,7 +125,7 @@ bool rfm69_write(
     address |= 0x80; // Set rw bit
 
     // Disable interrupts and save current state
-    //uint32_t irq_status = save_and_disable_interrupts();
+    uint32_t irq_status = save_and_disable_interrupts();
     // Critical code section
 
     cs_select(rfm->pin_cs); 
@@ -137,7 +136,7 @@ bool rfm69_write(
     cs_deselect(rfm->pin_cs);
 
     // Restore interrupts to previous state
-    //restore_interrupts(irq_status);
+    restore_interrupts(irq_status);
 
     if (rval != len + 1) {
         rfm->return_status = RFM69_SPI_UNEXPECTED_RETURN;
@@ -172,7 +171,7 @@ bool rfm69_read(
     address &= 0x7F; // Clear rw bit
 
     // Disable interrupts and save current state
-    //uint32_t irq_status = save_and_disable_interrupts();
+    uint32_t irq_status = save_and_disable_interrupts();
     // Critical code section
 
     cs_select(rfm->pin_cs);
@@ -183,38 +182,7 @@ bool rfm69_read(
     cs_deselect(rfm->pin_cs);
 
     // Restore interrupts to previous state
-    //restore_interrupts(irq_status);
-
-    if (rval != len + 1) {
-        rfm->return_status = RFM69_SPI_UNEXPECTED_RETURN;
-		return false;
-	}
-
-	rfm->return_status = RFM69_OK;
-	return true;
-}
-
-bool rfm69_try_read(
-        rfm69_context_t *rfm, 
-        uint8_t address, 
-        uint8_t *dst,
-        size_t len
-) {
-    address &= 0x7F; // Clear rw bit
-
-    // Disable interrupts and save current state
-    //uint32_t irq_status = save_and_disable_interrupts();
-    // Critical code section
-
-    cs_select(rfm->pin_cs);
-
-    int rval = spi_write_blocking(rfm->spi, &address, 1);
-    rval += spi_read_blocking(rfm->spi, 0, dst, len);
-
-    cs_deselect(rfm->pin_cs);
-
-    // Restore interrupts to previous state
-    //restore_interrupts(irq_status);
+    restore_interrupts(irq_status);
 
     if (rval != len + 1) {
         rfm->return_status = RFM69_SPI_UNEXPECTED_RETURN;
@@ -742,6 +710,20 @@ bool rfm69_fifo_threshold_get(rfm69_context_t *rfm, uint8_t *threshold) {
             RFM69_REG_FIFO_THRESH,
             threshold,
             _FIFO_THRESHOLD_MASK);
+}
+
+bool rfm69_fifo_write(rfm69_context_t *rfm, uint8_t *data, ptrdiff_t data_len) {
+	return rfm69_write(rfm, RFM69_REG_FIFO, data, data_len);
+}
+
+
+bool rfm69_fifo_read(rfm69_context_t *rfm, uint8_t *buffer, ptrdiff_t buffer_len) {
+	return rfm69_read(rfm, RFM69_REG_FIFO, buffer, buffer_len);
+}
+
+bool rfm69_fifo_clear(rfm69_context_t *rfm) {
+	uint8_t fifo_overrun = 0x10;
+    return rfm69_write(rfm, RFM69_REG_IRQ_FLAGS_2, &fifo_overrun, 1);
 }
 
 bool rfm69_payload_length_set(rfm69_context_t *rfm, uint8_t length) {

@@ -32,9 +32,9 @@
 #define RFM69_DEFAULT_ADDR           0x00
 #define RFM69_DEFAULT_RSSI_THRESHOLD 0xE4
 #define RFM69_DEFAULT_POWER_LEVEL    13
-#define RFM69_DEFAULT_SYNC_WORD_LEN  3
-#define RFM69_DEFAULT_PREAMBLE_LEN   3
+#define RFM69_DEFAULT_SYNC_WORD_LEN  4
 
+//static const uint8_t RFM69_DEFAULT_SYNC_WORD[8] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
 static const uint8_t RFM69_DEFAULT_SYNC_WORD[8] = {0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01};
 
 typedef struct _rfm69_context {
@@ -245,6 +245,10 @@ bool rfm69_tx_start_condition_set(rfm69_context_t *rfm, RFM69_TX_START_CONDITION
 
 bool rfm69_fifo_threshold_set(rfm69_context_t *rfm, uint8_t threshold);
 bool rfm69_fifo_threshold_get(rfm69_context_t *rfm, uint8_t *threshold);
+bool rfm69_fifo_write(rfm69_context_t *rfm, uint8_t *data, ptrdiff_t data_len);
+bool rfm69_fifo_read(rfm69_context_t *rfm, uint8_t *buffer, ptrdiff_t buffer_len);
+
+bool rfm69_fifo_clear(rfm69_context_t *rfm);
 
 bool rfm69_payload_length_set(rfm69_context_t *rfm, uint8_t length);
 bool rfm69_payload_length_get(rfm69_context_t *rfm, uint8_t *length);
