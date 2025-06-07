@@ -722,7 +722,18 @@ bool rfm69_fifo_read(rfm69_context_t *rfm, uint8_t *buffer, ptrdiff_t buffer_len
 }
 
 bool rfm69_fifo_clear(rfm69_context_t *rfm) {
+	uint8_t buffer = 0;
 	uint8_t fifo_overrun = 0x10;
+
+	if (!rfm69_read(rfm, RFM69_REG_IRQ_FLAGS_2, &buffer, 1))
+		return false;
+	if (buffer & fifo_overrun)
+		if (!rfm69_write(rfm, RFM69_REG_IRQ_FLAGS_2, &fifo_overrun, 1))
+			return false;
+
+    if (!rfm69_write(rfm, RFM69_REG_IRQ_FLAGS_2, &fifo_overrun, 1))
+		return false;
+
     return rfm69_write(rfm, RFM69_REG_IRQ_FLAGS_2, &fifo_overrun, 1);
 }
 
