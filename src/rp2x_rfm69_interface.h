@@ -34,8 +34,8 @@
 #define RFM69_DEFAULT_POWER_LEVEL    13
 #define RFM69_DEFAULT_SYNC_WORD_LEN  4
 
-//static const uint8_t RFM69_DEFAULT_SYNC_WORD[8] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
-static const uint8_t RFM69_DEFAULT_SYNC_WORD[8] = {0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01};
+static const uint8_t RFM69_DEFAULT_SYNC_WORD[RFM69_DEFAULT_SYNC_WORD_LEN] = 
+	{0xC0, 0xAC, 0x01, 0x01};
 
 typedef struct _rfm69_context {
     spi_inst_t *spi; // Initialized SPI instance
@@ -44,6 +44,9 @@ typedef struct _rfm69_context {
 	uint8_t pin_dio0;
 	uint8_t pin_dio1;
 	uint8_t pin_dio2;
+	uint8_t pin_dio3;
+	uint8_t pin_dio4;
+	uint8_t pin_dio5;
     RFM69_OP_MODE op_mode;
     int8_t pa_level;
     RFM69_PA_MODE pa_mode;

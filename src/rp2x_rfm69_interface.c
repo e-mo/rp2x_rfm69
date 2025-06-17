@@ -46,6 +46,9 @@ bool rfm69_init(
 	rfm->pin_dio0 = config->pin_dio0;
 	rfm->pin_dio1 = config->pin_dio1;
 	rfm->pin_dio2 = config->pin_dio2;
+	rfm->pin_dio3 = config->pin_dio3;
+	rfm->pin_dio4 = config->pin_dio4;
+	rfm->pin_dio5 = config->pin_dio2;
 	rfm->op_mode = RFM69_OP_MODE_STDBY;
 	rfm->pa_level = 0xFF; 
 	rfm->pa_mode = RFM69_PA_MODE_PA0;
@@ -79,6 +82,16 @@ bool rfm69_init(
 	rfm69_node_address_set(rfm, RFM69_DEFAULT_ADDR);
 	rfm69_broadcast_address_set(rfm, RFM69_DEFAULT_BROADCAST_ADDR);
 	rfm69_address_filter_set(rfm, RFM69_FILTER_NODE_BROADCAST);
+
+	// Recommended default clkout (off) per datasheet v1.1 pg 69.
+	uint8_t clkout_off = 0x07;
+	rfm69_write(rfm, RFM69_REG_DIO_MAPPING_2, &clkout_off, 1);
+
+	// LNA input impedence -> 200 ohms.
+	uint8_t reg_lna = 0;
+	rfm69_read(rfm, RFM69_REG_LNA, &reg_lna, 1);
+	reg_lna |= 0x80;
+	rfm69_write(rfm, RFM69_REG_LNA, &reg_lna, 1);
 	
 	// You have no idea how important this is and how odd
 	// the radio can behave with it off.
@@ -125,9 +138,9 @@ bool rfm69_write(
     address |= 0x80; // Set rw bit
 
     // Disable interrupts and save current state
-    uint32_t irq_status = save_and_disable_interrupts();
+    //uint32_t irq_status = save_and_disable_interrupts();
     // Critical code section
-
+	
     cs_select(rfm->pin_cs); 
 
     int rval = spi_write_blocking(rfm->spi, &address, 1);
@@ -136,7 +149,7 @@ bool rfm69_write(
     cs_deselect(rfm->pin_cs);
 
     // Restore interrupts to previous state
-    restore_interrupts(irq_status);
+    //restore_interrupts(irq_status);
 
     if (rval != len + 1) {
         rfm->return_status = RFM69_SPI_UNEXPECTED_RETURN;
@@ -171,7 +184,7 @@ bool rfm69_read(
     address &= 0x7F; // Clear rw bit
 
     // Disable interrupts and save current state
-    uint32_t irq_status = save_and_disable_interrupts();
+    //uint32_t irq_status = save_and_disable_interrupts();
     // Critical code section
 
     cs_select(rfm->pin_cs);
@@ -182,7 +195,7 @@ bool rfm69_read(
     cs_deselect(rfm->pin_cs);
 
     // Restore interrupts to previous state
-    restore_interrupts(irq_status);
+    //restore_interrupts(irq_status);
 
     if (rval != len + 1) {
         rfm->return_status = RFM69_SPI_UNEXPECTED_RETURN;
@@ -722,17 +735,7 @@ bool rfm69_fifo_read(rfm69_context_t *rfm, uint8_t *buffer, ptrdiff_t buffer_len
 }
 
 bool rfm69_fifo_clear(rfm69_context_t *rfm) {
-	uint8_t buffer = 0;
 	uint8_t fifo_overrun = 0x10;
-
-	if (!rfm69_read(rfm, RFM69_REG_IRQ_FLAGS_2, &buffer, 1))
-		return false;
-	if (buffer & fifo_overrun)
-		if (!rfm69_write(rfm, RFM69_REG_IRQ_FLAGS_2, &fifo_overrun, 1))
-			return false;
-
-    if (!rfm69_write(rfm, RFM69_REG_IRQ_FLAGS_2, &fifo_overrun, 1))
-		return false;
 
     return rfm69_write(rfm, RFM69_REG_IRQ_FLAGS_2, &fifo_overrun, 1);
 }
